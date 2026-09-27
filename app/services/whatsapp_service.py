@@ -11,6 +11,11 @@ WHATSAPP_API_URL = (
 
 async def send_text_message(to: str, body: str) -> dict:
     """Send a plain text WhatsApp message to a phone number."""
+    if not settings.WHATSAPP_ACCESS_TOKEN:
+        logger.warning(f"WHATSAPP_ACCESS_TOKEN not configured. Skipping send to {to}.")
+        logger.info(f"[DEV] Message that would be sent to {to}: {body}")
+        return {}
+
     headers = {
         "Authorization": f"Bearer {settings.WHATSAPP_ACCESS_TOKEN}",
         "Content-Type": "application/json",

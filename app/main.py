@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.config import settings
-from app.core.logging import setup_logging
+from app.core.logging import setup_logging, get_logger
 from app.api.v1 import webhook
+
+setup_logging(debug=settings.DEBUG)
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
