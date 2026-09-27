@@ -29,11 +29,30 @@ model = genai.GenerativeModel(
 )
 
 
-async def get_agricultural_advice(user_message: str, phone_number: str) -> str:
-    """Generate agricultural advice for a given farmer query using Gemini."""
+def _build_prompt(user_message: str, history: list) -> str:
+    """Build a prompt that includes recent conversation history for context."""
+    if not history:
+        return user_message
+
+    context_lines = []
+    for entry in reversed(history):
+        role = "Agricultor" if entry.direction == "inbound" else "AgriBot"
+        context_lines.append(f"{role}: {entry.content}")
+
+    context_block = "\n".join(context_lines)
+    return f"Historial reciente:\n{context_block}\n\nNueva consulta: {user_message}"
+
+
+async def get_agricultural_advice(
+    user_message: str,
+    phone_number: str,
+    history: list | None = None,
+) -> str:
+    """Generate agricultural advice using Gemini, with optional conversation history."""
     try:
+        prompt = _build_prompt(user_message, history or [])
         logger.info(f"Generating advice for {phone_number}: {user_message[:50]}...")
-        response = model.generate_content(user_message)
+        response = model.generate_content(prompt)
         return response.text
     except Exception as e:
         logger.error(f"AI service error for {phone_number}: {e}")

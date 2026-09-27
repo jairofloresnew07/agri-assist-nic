@@ -17,6 +17,7 @@ def setup_logging(debug: bool = False) -> None:
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+    logging.getLogger("google.api_core.retry").setLevel(logging.WARNING)
 
 
 def get_logger(name: str) -> logging.Logger:

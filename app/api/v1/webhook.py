@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Request, HTTPException, Query
+from fastapi import APIRouter, Request, HTTPException, Query, Depends
+from sqlalchemy.orm import Session
 from app.config import settings
+from app.db.session import get_db
 from app.schemas.whatsapp import WhatsAppWebhookPayload
 from app.services.whatsapp_service import send_text_message
 from app.services.ai_service import get_agricultural_advice
+from app.services import farmer_service
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -23,7 +26,7 @@ async def verify_webhook(
 
 
 @router.post("/webhook")
-async def receive_message(request: Request):
+async def receive_message(request: Request, db: Session = Depends(get_db)):
     """Receive and process incoming WhatsApp messages."""
     try:
         body = await request.json()
@@ -38,26 +41,40 @@ async def receive_message(request: Request):
                     phone = message.from_
                     msg_type = message.type
 
+                    # Register farmer if not yet in DB
+                    farmer_service.get_or_create_farmer(db, phone)
+
                     if msg_type == "text" and message.text:
                         user_text = message.text.body
                         logger.info(f"Message received from {phone}: {user_text[:60]}")
-                        reply = await get_agricultural_advice(user_text, phone)
+
+                        # Persist inbound message
+                        farmer_service.log_message(db, phone, "inbound", user_text)
+
+                        # Get recent history for context
+                        history = farmer_service.get_recent_history(db, phone)
+
+                        # Generate AI response
+                        reply = await get_agricultural_advice(user_text, phone, history)
+
+                        # Persist outbound message
+                        farmer_service.log_message(db, phone, "outbound", reply)
+
                         await send_text_message(to=phone, body=reply)
 
                     elif msg_type == "image":
-                        await send_text_message(
-                            to=phone,
-                            body=(
-                                "Imagen recibida. El analisis visual de cultivos estara "
-                                "disponible proximamente. Por ahora, describe lo que observas "
-                                "en tu planta y te orientamos."
-                            ),
+                        response_text = (
+                            "Imagen recibida. El analisis visual de cultivos estara "
+                            "disponible proximamente. Por ahora, describe lo que observas "
+                            "en tu planta y te orientamos."
                         )
+                        farmer_service.log_message(db, phone, "outbound", response_text, "image")
+                        await send_text_message(to=phone, body=response_text)
+
                     else:
-                        await send_text_message(
-                            to=phone,
-                            body="Hola, soy AgriBot. Escribe tu consulta agricola y te ayudo.",
-                        )
+                        response_text = "Hola, soy AgriBot. Escribe tu consulta agricola y te ayudo."
+                        farmer_service.log_message(db, phone, "outbound", response_text)
+                        await send_text_message(to=phone, body=response_text)
 
         return {"status": "ok"}
 
