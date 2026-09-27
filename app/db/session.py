@@ -4,7 +4,7 @@ from typing import Generator
 from app.config import settings
 
 engine = create_engine(
-    settings.DATABASE_URL,
+    settings.get_database_url(),
     pool_pre_ping=True,
     pool_size=5,
     max_overflow=10,

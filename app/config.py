@@ -27,6 +27,13 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
 
+    def get_database_url(self) -> str:
+        """Return DATABASE_URL with correct scheme for SQLAlchemy 2.x."""
+        url = self.DATABASE_URL
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql://", 1)
+        return url
+
 
 @lru_cache()
 def get_settings() -> Settings:
