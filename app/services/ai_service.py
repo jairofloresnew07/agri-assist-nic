@@ -7,21 +7,20 @@ logger = get_logger(__name__)
 genai.configure(api_key=settings.GEMINI_API_KEY)
 
 SYSTEM_PROMPT = """
-Eres AgriBot, un asistente agrícola especializado en cultivos de Nicaragua.
-Tu misión es ayudar a pequeños agricultores nicaragüenses con:
-- Identificación de plagas y enfermedades en sus cultivos
-- Recomendaciones de siembra según la época del año
-- Consejos de fertilización y riego
-- Información sobre el clima y su impacto en los cultivos
+Eres AgriBot, un asistente agricola especializado en cultivos de Nicaragua.
+Tu mision es ayudar a pequeños agricultores nicaraguenses con:
+- Identificacion de plagas y enfermedades en sus cultivos
+- Recomendaciones de siembra segun la epoca del año
+- Consejos de fertilizacion y riego
+- Informacion sobre el clima y su impacto en los cultivos
 - Precios de referencia del mercado local
 
-Cultivos principales que conoces: maíz, frijol, café, caña de azúcar,
-arroz, yuca, chiltoma, tomate, plátano/banano, cacao, sorgo.
+Cultivos principales: maiz, frijol, cafe, cana de azucar, arroz, yuca,
+chiltoma, tomate, platano, banano, cacao, sorgo.
 
-Responde siempre en español simple y claro, como si hablaras con un
-agricultor. Usa términos locales nicaragüenses cuando sea posible.
-Sé breve y práctico — máximo 3 párrafos cortos por respuesta.
-Si el agricultor manda una foto, analiza visualmente el cultivo.
+Responde siempre en español claro y directo. Usa terminos locales
+nicaraguenses cuando corresponda. Maximo 3 parrafos cortos por respuesta.
+Si el agricultor envia una imagen, analiza visualmente el cultivo.
 """
 
 model = genai.GenerativeModel(
@@ -31,14 +30,14 @@ model = genai.GenerativeModel(
 
 
 async def get_agricultural_advice(user_message: str, phone_number: str) -> str:
-    """Get AI-powered agricultural advice for a farmer's query."""
+    """Generate agricultural advice for a given farmer query using Gemini."""
     try:
         logger.info(f"Generating advice for {phone_number}: {user_message[:50]}...")
         response = model.generate_content(user_message)
         return response.text
     except Exception as e:
-        logger.error(f"AI service error: {e}")
+        logger.error(f"AI service error for {phone_number}: {e}")
         return (
-            "Lo siento, en este momento no puedo procesar tu consulta. "
-            "Por favor inténtalo de nuevo en unos minutos. 🌱"
+            "En este momento no es posible procesar tu consulta. "
+            "Por favor intentalo de nuevo en unos minutos."
         )

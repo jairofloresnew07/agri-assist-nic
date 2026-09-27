@@ -1,41 +1,36 @@
-# 🌱 AgriAssist NIC
+# AgriAssist NIC
 
-> **Asistente agrícola con IA para pequeños agricultores nicaragüenses vía WhatsApp**
+**Asistente agrícola basado en IA para pequeños agricultores nicaragüenses, accesible vía WhatsApp.**
 
 [![CI](https://github.com/jairofloresnew07/agri-assist-nic/actions/workflows/ci.yml/badge.svg)](https://github.com/jairofloresnew07/agri-assist-nic/actions)
 [![Python](https://img.shields.io/badge/Python-3.13-blue)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)](https://fastapi.tiangolo.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-## 📌 Problema
+## Problema
 
 Miles de agricultores nicaragüenses pierden cosechas cada año por falta de acceso oportuno a información agrícola: identificación de plagas, recomendaciones de riego, pronósticos climáticos y precios de mercado. Un agrónomo presencial es costoso e inaccesible para comunidades rurales.
 
-## 💡 Solución
+## Solución
 
-AgriAssist NIC es un chatbot inteligente accesible vía **WhatsApp** — la app más usada en Nicaragua, incluso con internet básico. Los agricultores pueden:
+AgriAssist NIC es un chatbot inteligente accesible vía WhatsApp, la aplicación más utilizada en Nicaragua incluso con conexión básica a internet. Los agricultores pueden consultar sobre diagnóstico de plagas, recomendaciones de siembra, fertilización, clima y precios de mercado local.
 
-- 📸 Enviar fotos de sus cultivos para diagnóstico de plagas
-- 🌤️ Recibir recomendaciones basadas en el clima de su zona
-- 🌱 Consultar sobre siembra, fertilización y cosecha
-- 📊 Ver precios de referencia del mercado local
-
-## 🏗️ Arquitectura
+## Arquitectura
 
 ```
 Agricultor (WhatsApp)
-        │
-        ▼
+        |
+        v
   Meta WhatsApp API
-        │
-        ▼
-  FastAPI Backend  ◄──► Google Gemini AI
-        │
-        ▼
+        |
+        v
+  FastAPI Backend  <---> Google Gemini AI
+        |
+        v
    PostgreSQL DB
 ```
 
-## 🛠️ Stack Tecnológico
+## Stack tecnológico
 
 | Capa | Tecnología |
 |---|---|
@@ -47,77 +42,76 @@ Agricultor (WhatsApp)
 | CI/CD | GitHub Actions |
 | Deploy | Railway / Render |
 
-## 🚀 Cómo ejecutar localmente
+## Configuración local
 
-### 1. Prerequisitos
+### Prerequisitos
+
 - Python 3.13+
 - Docker Desktop
 - Git
 
-### 2. Clonar e instalar
+### Instalación
+
 ```bash
 git clone https://github.com/jairofloresnew07/agri-assist-nic.git
 cd agri-assist-nic
 
-# Crear entorno virtual
 py -m venv venv
-venv\Scripts\activate   # Windows
+venv\Scripts\activate
 
-# Instalar dependencias
 pip install -r requirements.txt
 ```
 
-### 3. Configurar variables de entorno
+### Variables de entorno
+
 ```bash
 copy .env.example .env
-# Editar .env con tus API keys reales
+# Completar .env con las API keys correspondientes
 ```
 
-### 4. Levantar la base de datos
+### Ejecución
+
 ```bash
+# Levantar base de datos
 docker-compose up db -d
-```
 
-### 5. Ejecutar la API
-```bash
+# Iniciar servidor de desarrollo
 uvicorn app.main:app --reload
 ```
 
-La API estará disponible en: http://localhost:8000
-Documentación interactiva: http://localhost:8000/docs
+- API: http://localhost:8000
+- Documentación: http://localhost:8000/docs
 
-### 6. Ejecutar tests
+### Tests
+
 ```bash
 pytest tests/ -v
 ```
 
-## 📁 Estructura del Proyecto
+## Estructura del proyecto
 
 ```
 agri-assist-nic/
 ├── app/
-│   ├── api/v1/          # Endpoints (webhook WhatsApp)
+│   ├── api/v1/          # Endpoints de la API
 │   ├── core/            # Logging y utilidades base
-│   ├── db/              # Sesión y base SQLAlchemy
+│   ├── db/              # Sesión y declaraciones SQLAlchemy
 │   ├── models/          # Modelos de base de datos
-│   ├── schemas/         # Schemas Pydantic (validación)
-│   ├── services/        # Lógica de negocio (AI, WhatsApp)
+│   ├── schemas/         # Schemas Pydantic para validación
+│   ├── services/        # Lógica de negocio (IA, WhatsApp)
 │   ├── config.py        # Configuración centralizada
 │   └── main.py          # Entrada de la aplicación
-├── tests/               # Suite de pruebas
-├── .github/workflows/   # CI/CD con GitHub Actions
-├── docker-compose.yml   # Orquestación de servicios
-├── Dockerfile           # Imagen de producción
-├── requirements.txt     # Dependencias Python
-└── .env.example         # Plantilla de variables de entorno
+├── tests/
+├── .github/workflows/
+├── docker-compose.yml
+├── Dockerfile
+└── requirements.txt
 ```
 
-## 👤 Autor
+## Autor
 
-**Jairo Flores** — [@jairofloresnew07](https://github.com/jairofloresnew07)
+Jairo Flores — [@jairofloresnew07](https://github.com/jairofloresnew07)
 
-Estudiante de Ingeniería en Computación | Nicaragua 🇳🇮
-
-## 📄 Licencia
+## Licencia
 
 MIT — ver [LICENSE](LICENSE)

@@ -1,8 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from pydantic import ConfigDict
 from typing import Optional, List
 
-
-# ── WhatsApp Webhook payload schemas ─────────────────────────────────────────
 
 class WhatsAppProfile(BaseModel):
     name: Optional[str] = None
@@ -24,16 +23,14 @@ class WhatsAppImageBody(BaseModel):
 
 
 class WhatsAppMessage(BaseModel):
-    from_: str
+    model_config = ConfigDict(populate_by_name=True)
+
+    from_: str = Field(alias="from")
     id: str
     timestamp: str
     type: str
     text: Optional[WhatsAppTextBody] = None
     image: Optional[WhatsAppImageBody] = None
-
-    class Config:
-        populate_by_name = True
-        fields = {"from_": "from"}
 
 
 class WhatsAppValue(BaseModel):
