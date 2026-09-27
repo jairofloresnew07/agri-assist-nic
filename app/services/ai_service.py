@@ -24,7 +24,7 @@ Si el agricultor envia una imagen, analiza visualmente el cultivo.
 """
 
 model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
+    model_name="gemini-3.8-flash",
     system_instruction=SYSTEM_PROMPT,
 )
 
