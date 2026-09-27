@@ -29,28 +29,37 @@ model = genai.GenerativeModel(
 )
 
 
-def _build_prompt(user_message: str, history: list) -> str:
-    """Build a prompt that includes recent conversation history for context."""
-    if not history:
-        return user_message
+def _build_prompt(
+    user_message: str,
+    history: list,
+    weather_context: str | None = None,
+) -> str:
+    """Build a prompt including conversation history and weather context."""
+    parts = []
 
-    context_lines = []
-    for entry in reversed(history):
-        role = "Agricultor" if entry.direction == "inbound" else "AgriBot"
-        context_lines.append(f"{role}: {entry.content}")
+    if weather_context:
+        parts.append(f"Informacion climatica actual: {weather_context}")
 
-    context_block = "\n".join(context_lines)
-    return f"Historial reciente:\n{context_block}\n\nNueva consulta: {user_message}"
+    if history:
+        context_lines = []
+        for entry in reversed(history):
+            role = "Agricultor" if entry.direction == "inbound" else "AgriBot"
+            context_lines.append(f"{role}: {entry.content}")
+        parts.append("Historial reciente:\n" + "\n".join(context_lines))
+
+    parts.append(f"Nueva consulta: {user_message}")
+    return "\n\n".join(parts)
 
 
 async def get_agricultural_advice(
     user_message: str,
     phone_number: str,
     history: list | None = None,
+    weather_context: str | None = None,
 ) -> str:
-    """Generate agricultural advice using Gemini, with optional conversation history."""
+    """Generate agricultural advice using Gemini, with optional conversation history and weather data."""
     try:
-        prompt = _build_prompt(user_message, history or [])
+        prompt = _build_prompt(user_message, history or [], weather_context)
         logger.info(f"Generating advice for {phone_number}: {user_message[:50]}...")
         response = model.generate_content(prompt)
         return response.text

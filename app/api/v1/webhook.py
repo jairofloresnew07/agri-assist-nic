@@ -6,6 +6,7 @@ from app.schemas.whatsapp import WhatsAppWebhookPayload
 from app.services.whatsapp_service import send_text_message
 from app.services.ai_service import get_agricultural_advice
 from app.services import farmer_service
+from app.services.weather_service import detect_location, get_weather, format_weather_context
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -54,8 +55,19 @@ async def receive_message(request: Request, db: Session = Depends(get_db)):
                         # Get recent history for context
                         history = farmer_service.get_recent_history(db, phone)
 
+                        # Detect location and fetch real-time weather if found
+                        weather_context = None
+                        city = detect_location(user_text)
+                        if city:
+                            weather = await get_weather(city)
+                            if weather:
+                                weather_context = format_weather_context(weather)
+                                logger.info(f"Weather context added for {city}")
+
                         # Generate AI response
-                        reply = await get_agricultural_advice(user_text, phone, history)
+                        reply = await get_agricultural_advice(
+                            user_text, phone, history, weather_context
+                        )
 
                         # Persist outbound message
                         farmer_service.log_message(db, phone, "outbound", reply)
