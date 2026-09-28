@@ -8,10 +8,15 @@ class Settings(BaseSettings):
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = False
 
-    # WhatsApp / Twilio
+    # WhatsApp / Meta Cloud API
     WHATSAPP_VERIFY_TOKEN: str = ""
     WHATSAPP_ACCESS_TOKEN: str = ""
     WHATSAPP_PHONE_NUMBER_ID: str = ""
+
+    # Twilio WhatsApp Sandbox
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_SANDBOX_NUMBER: str = "+14155238886"
 
     # AI (Google Gemini)
     GEMINI_API_KEY: str = ""

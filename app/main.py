@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.config import settings
 from app.core.logging import setup_logging, get_logger
-from app.api.v1 import webhook
+from app.api.v1 import webhook, twilio_webhook
 
 setup_logging(debug=settings.DEBUG)
 logger = get_logger(__name__)
@@ -24,6 +24,7 @@ app = FastAPI(
 
 # ── Routers ────────────────────────────────────────────────────────────────────
 app.include_router(webhook.router, prefix="/api/v1", tags=["WhatsApp Webhook"])
+app.include_router(twilio_webhook.router, prefix="/api/v1/twilio", tags=["Twilio Webhook"])
 
 
 @app.get("/", tags=["Health"])
