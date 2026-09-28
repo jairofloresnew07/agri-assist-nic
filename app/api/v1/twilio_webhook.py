@@ -5,10 +5,20 @@ from app.db.session import get_db
 from app.services.ai_service import get_agricultural_advice
 from app.services import farmer_service
 from app.services.weather_service import detect_location, get_weather, format_weather_context
+from app.core.rate_limiter import is_rate_limited, seconds_until_reset
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter()
+
+
+def _twiml(message: str) -> Response:
+    """Build a TwiML XML response with a single message."""
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Message>{message}</Message>
+</Response>"""
+    return Response(content=xml, media_type="application/xml")
 
 
 @router.post("/webhook")
@@ -21,17 +31,24 @@ async def twilio_receive_message(
 ):
     """Receive and process incoming WhatsApp messages from Twilio sandbox."""
     try:
-        # Twilio sends numbers as "whatsapp:+50512345678"
         phone = From.replace("whatsapp:", "")
         user_text = Body.strip()
 
         if not phone or not user_text:
-            return {"status": "ignored"}
+            return Response(content="<?xml version='1.0'?><Response/>", media_type="application/xml")
 
         logger.info(f"Twilio message received from {phone}: {user_text[:60]}")
 
         # Register farmer if not yet in DB
         farmer_service.get_or_create_farmer(db, phone)
+
+        # Enforce rate limit before calling AI
+        if is_rate_limited(phone):
+            wait = seconds_until_reset(phone)
+            return _twiml(
+                f"Has enviado muchos mensajes seguidos. "
+                f"Por favor espera {wait} segundos antes de consultar de nuevo."
+            )
 
         # Persist inbound message
         farmer_service.log_message(db, phone, "inbound", user_text)
@@ -54,14 +71,11 @@ async def twilio_receive_message(
         # Persist outbound message
         farmer_service.log_message(db, phone, "outbound", reply)
 
-        # Return TwiML response — Twilio delivers this directly to WhatsApp
-        twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-    <Message>{reply}</Message>
-</Response>"""
-        return Response(content=twiml, media_type="application/xml")
+        return _twiml(reply)
 
     except Exception as e:
         logger.error(f"Twilio webhook error: {e}")
-        twiml = """<?xml version="1.0" encoding="UTF-8"?><Response></Response>"""
-        return Response(content=twiml, media_type="application/xml")
+        return Response(
+            content="<?xml version='1.0' encoding='UTF-8'?><Response/>",
+            media_type="application/xml",
+        )
