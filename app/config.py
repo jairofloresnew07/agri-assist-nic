@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "AgriAssist NIC"
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = False
+    ADMIN_API_KEY: str = ""
 
     # WhatsApp / Meta Cloud API
     WHATSAPP_VERIFY_TOKEN: str = ""

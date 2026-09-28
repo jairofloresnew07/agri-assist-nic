@@ -38,6 +38,10 @@ async def twilio_receive_message(
         if not phone or not user_text:
             return Response(content="<?xml version='1.0'?><Response/>", media_type="application/xml")
 
+        if len(user_text) > 2000:
+            logger.warning(f"Message from {phone} exceeds max length ({len(user_text)} chars). Rejected.")
+            return _twiml("Tu mensaje es demasiado largo. Por favor resume tu consulta en menos palabras.")
+
         logger.info(f"Twilio message received from {phone}: {user_text[:60]}")
 
         # Register farmer if not yet in DB
