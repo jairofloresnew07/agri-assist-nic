@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, Query, Depends
+from fastapi.responses import PlainTextResponse
 from sqlalchemy.orm import Session
 from app.config import settings
 from app.db.session import get_db
@@ -22,7 +23,7 @@ async def verify_webhook(
     """WhatsApp webhook verification endpoint required by Meta."""
     if hub_mode == "subscribe" and hub_verify_token == settings.WHATSAPP_VERIFY_TOKEN:
         logger.info("Webhook verified successfully.")
-        return int(hub_challenge)
+        return PlainTextResponse(content=hub_challenge)
     raise HTTPException(status_code=403, detail="Verification token mismatch.")
 
 
