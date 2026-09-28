@@ -18,12 +18,25 @@ jobs:
         with:
           python-version: "3.13"
 
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
         run: pip install -r requirements.txt
 
       - name: Run tests
         env:
-          WHATSAPP_VERIFY_TOKEN: mi_token_secreto_aqui
-          GEMINI_API_KEY: fake_key_for_tests
           DATABASE_URL: sqlite:///./test.db
-        run: pytest tests/ -v
+          WHATSAPP_VERIFY_TOKEN: test_verify_token
+          GEMINI_API_KEY: fake_key_for_tests
+          OPENWEATHER_API_KEY: fake_key_for_tests
+          TWILIO_ACCOUNT_SID: ACfakeaccountsid
+          TWILIO_AUTH_TOKEN: fakeauthtoken
+          TWILIO_SANDBOX_NUMBER: "+14155238886"
+          DEBUG: "false"
+        run: pytest tests/ -v --tb=short
