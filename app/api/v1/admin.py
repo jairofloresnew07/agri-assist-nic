@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Security
 from fastapi.security import APIKeyHeader
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func
+from datetime import datetime, timedelta, timezone
 from app.db.session import get_db
 from app.models.farmer import Farmer, MessageLog
 from app.config import settings
@@ -41,6 +42,8 @@ async def get_stats(db: Session = Depends(get_db)):
     """
     System usage statistics. Requires X-Admin-API-Key header.
     """
+    since_24h = datetime.now(timezone.utc) - timedelta(hours=24)
+
     total_farmers = db.query(func.count(Farmer.id)).scalar()
     total_messages = db.query(func.count(MessageLog.id)).scalar()
     inbound = db.query(func.count(MessageLog.id)).filter(
@@ -49,6 +52,16 @@ async def get_stats(db: Session = Depends(get_db)):
     outbound = db.query(func.count(MessageLog.id)).filter(
         MessageLog.direction == "outbound"
     ).scalar()
+    last_24h = db.query(func.count(MessageLog.id)).filter(
+        MessageLog.direction == "inbound",
+        MessageLog.created_at >= since_24h,
+    ).scalar()
+
+    last_message = (
+        db.query(MessageLog.created_at)
+        .order_by(MessageLog.created_at.desc())
+        .first()
+    )
 
     return {
         "farmers": {
@@ -58,5 +71,7 @@ async def get_stats(db: Session = Depends(get_db)):
             "total": total_messages,
             "inbound": inbound,
             "outbound": outbound,
+            "last_24h": last_24h,
+            "last_activity": last_message[0].isoformat() if last_message else None,
         },
     }

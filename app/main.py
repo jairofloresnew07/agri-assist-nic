@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from app.config import settings
 from app.core.logging import setup_logging, get_logger
+from app.core.startup import validate_required_settings
 from app.api.v1 import webhook, twilio_webhook, admin
 
 setup_logging(debug=settings.DEBUG)
@@ -12,6 +13,7 @@ logger = get_logger(__name__)
 async def lifespan(app: FastAPI):
     """Startup and shutdown events."""
     setup_logging(debug=settings.DEBUG)
+    validate_required_settings()
     yield
 
 
