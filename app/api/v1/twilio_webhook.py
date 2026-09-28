@@ -1,8 +1,7 @@
-from fastapi import APIRouter, Request, Depends, Form
+from fastapi import APIRouter, Request, Depends, Form, Response
 from sqlalchemy.orm import Session
 from typing import Annotated
 from app.db.session import get_db
-from app.services.twilio_service import send_twilio_message
 from app.services.ai_service import get_agricultural_advice
 from app.services import farmer_service
 from app.services.weather_service import detect_location, get_weather, format_weather_context
@@ -55,11 +54,14 @@ async def twilio_receive_message(
         # Persist outbound message
         farmer_service.log_message(db, phone, "outbound", reply)
 
-        # Send reply via Twilio
-        await send_twilio_message(to=phone, body=reply)
-
-        return {"status": "ok"}
+        # Return TwiML response — Twilio delivers this directly to WhatsApp
+        twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Message>{reply}</Message>
+</Response>"""
+        return Response(content=twiml, media_type="application/xml")
 
     except Exception as e:
         logger.error(f"Twilio webhook error: {e}")
-        return {"status": "ok"}
+        twiml = """<?xml version="1.0" encoding="UTF-8"?><Response></Response>"""
+        return Response(content=twiml, media_type="application/xml")
