@@ -1,8 +1,13 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+    )
+
     # App
     APP_NAME: str = "AgriAssist NIC"
     APP_VERSION: str = "0.1.0"
@@ -27,10 +32,6 @@ class Settings(BaseSettings):
     # Weather API
     OPENWEATHER_API_KEY: str = ""
     OPENWEATHER_BASE_URL: str = "https://api.openweathermap.org/data/2.5"
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
 
     def get_database_url(self) -> str:
         """Return DATABASE_URL with correct scheme for SQLAlchemy 2.x."""

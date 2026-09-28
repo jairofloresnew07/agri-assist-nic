@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, Depends, Form, Response
 from sqlalchemy.orm import Session
 from typing import Annotated
+from xml.sax.saxutils import escape as xml_escape
 from app.db.session import get_db
 from app.services.ai_service import get_agricultural_advice
 from app.services import farmer_service
@@ -13,10 +14,10 @@ router = APIRouter()
 
 
 def _twiml(message: str) -> Response:
-    """Build a TwiML XML response with a single message."""
+    """Build a TwiML XML response with a single message, safely escaped."""
     xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-    <Message>{message}</Message>
+    <Message>{xml_escape(message)}</Message>
 </Response>"""
     return Response(content=xml, media_type="application/xml")
 
